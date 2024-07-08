@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
-    <data-source source="LOCAL" name="code_analysis" uuid="6aecd960-bf8d-4a28-87e3-0f913e9b41f4">
+    <data-source source="LOCAL" name="code_analysis" uuid="17b042df-259a-4cde-8f13-5b8f9225a913">
       <driver-ref>sqlite.xerial</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
-      <jdbc-url>jdbc:sqlite:E:\Github\legendary-potato\code_analysis.db</jdbc-url>
+      <jdbc-url>jdbc:sqlite:E:\Github\legendary-potato\utils\database\code_analysis.db</jdbc-url>
       <working-dir>$ProjectFileDir$</working-dir>
       <libraries>
         <library>
