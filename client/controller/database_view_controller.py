@@ -66,7 +66,7 @@ class DatabaseEditor(DatabaseEditorView):
         if dialog.exec_() == QDialog.Accepted:
             threat = dialog.get_data()
             if not threat == "":
-                self.build_table(self.db.query_by_threat(threat))
+                self.build_table(self.db.search_Threat_Func_fuzzy(threat))
             else:
                 self.build_table(self.db.get_all_threat())
 
