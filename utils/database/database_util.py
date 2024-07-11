@@ -25,15 +25,6 @@ class Database:
 
         self.conn = sqlite3.connect(db_path, check_same_thread=False)
 
-    def query(self, sql, params=None):
-        cursor = self.conn.cursor()
-        if params:
-            cursor.execute(sql, params)
-        else:
-            cursor.execute(sql)
-        self.conn.commit()
-        return cursor.fetchall()
-
     def execute(self, sql, params=None):
         cursor = self.conn.cursor()
         if params:
@@ -44,10 +35,10 @@ class Database:
         return cursor.fetchall()
 
     def get_all_threat(self):
-        return self.query("SELECT * FROM Threat")
+        return self.execute("SELECT * FROM Threat")
 
     def query_by_threat(self, threat: str):
-        return self.query("SELECT * FROM Threat WHERE threat=?", (threat.lower(),))
+        return self.execute("SELECT * FROM Threat WHERE threat=?", (threat.lower(),))
 
     def insert_threat(self, description: str, level: int, threat: str = ""):
         self.execute("INSERT INTO Threat (threat,level, description) VALUES (?, ?,?)",
