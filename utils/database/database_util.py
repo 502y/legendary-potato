@@ -73,12 +73,13 @@ class Database:
         self.execute(update_query, params)
 
     def search_Threat_Func_re(self, regex_pattern):
-        sql_query = f"SELECT * FROM Threat WHERE threat REGEXP {regex_pattern}"
-        return self.execute(sql_query)
+        sql_query = "SELECT * FROM Threat WHERE threat REGEXP %s"
+        return self.execute(sql_query, (regex_pattern,))
 
     def search_Threat_Func_fuzzy(self, pattern):
-        sql_query = f"SELECT * FROM Threat WHERE threat LIKE {pattern}"
-        return self.execute(sql_query)
+        sql_query = "SELECT * FROM Threat WHERE threat LIKE %s"
+        return self.execute(sql_query, (pattern,))
+
 
     def close(self):
         self.conn.close()
