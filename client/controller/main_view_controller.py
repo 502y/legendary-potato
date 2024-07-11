@@ -8,22 +8,26 @@ from PyQt5.QtWidgets import QFileDialog, QMainWindow, QMessageBox
 
 from client.controller.database_view_controller import DatabaseEditor
 from client.view.custom_treeview import CustomFileSystemModel
-from client.view.main_view import Ui_MainWindow
+from client.view.main_view import MainWindowView
+from utils.cmd_utils import compile_and_run
 from utils.file_utils import extract_custom_headers_and_sources
 from utils.str_utils import is_empty_or_whitespace, search_in_str
 
 
-class MainWindow(QMainWindow, Ui_MainWindow):
+class MainWindowViewController(QMainWindow, MainWindowView):
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.entry_point = ""
+
         self.setup_ui(self)
 
         self.openFile.triggered.connect(self.open_File)
         self.exportReport.triggered.connect(self.export_report)
         self.exit.triggered.connect(self.try_exit)
         self.operate_database.triggered.connect(self.show_database_window)
+        self.compile.triggered.connect(self.compile_and_run)
 
-        self.treeView.doubleClicked.connect(self.getSelectedFileFromTree)
+        self.treeView.doubleClicked.connect(self.get_selected_file_from_tree)
         self.search_button.clicked.connect(self.do_search)
 
     def open_File(self):
@@ -35,6 +39,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         if dialog.exec_():
             selected_file = dialog.selectedFiles()[0]
             if selected_file:
+                self.entry_point = selected_file
                 self.statusbar.showMessage(f"项目入口：{selected_file}")
 
                 custom_headers, custom_sources = extract_custom_headers_and_sources(selected_file)
@@ -54,12 +59,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 self.treeView.setRootIndex(index)
                 self.treeView.expandAll()
 
-                # self.treeView.setRootIndex(self.model.index(selected_file))
+
             else:
                 self.statusbar.showMessage("选择的文件夹无效")
                 return
 
-    def getSelectedFileFromTree(self, index: QModelIndex):
+    def get_selected_file_from_tree(self, index: QModelIndex):
         if index.isValid():
             item = self.model.filePath(index)
             if os.path.isdir(item) or item.endswith(".pyc"):
@@ -96,12 +101,12 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.sourceBroswer.setText(color_text)
 
     def export_report(self):
-        fileName, _ = QFileDialog.getSaveFileName(self, "QFileDialog.getSaveFileName()", "",
-                                                  "Json文档(*.json);;All Files (*)")
+        file_name, _ = QFileDialog.getSaveFileName(self, "QFileDialog.getSaveFileName()", "",
+                                                   "Json文档(*.json);;All Files (*)")
         report = "Some content from report system"
-        if fileName:
+        if file_name:
             try:
-                with open(fileName, 'w') as f:
+                with open(file_name, 'w') as f:
                     f.write(report)
                 self.showSuccessMessage(text="保存成功", title="成功")
             except Exception as e:
@@ -115,6 +120,17 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     def show_database_window(self):
         self.db_window = DatabaseEditor(self)
         self.db_window.show()
+
+    def compile_and_run(self):
+        if not self.entry_point:
+            self.showError("请先选择项目入口")
+            return
+        with open(self.entry_point, "r") as file:
+            try:
+                compile_and_run(file.read())
+            except Exception as e:
+                self.showError(e)
+                return
 
 
 def handle_non_match(string: str) -> str:

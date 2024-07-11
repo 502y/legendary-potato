@@ -33,6 +33,8 @@ class DatabaseEditor(DatabaseEditorView):
 
     def delete_data(self):
         indexes = self.table_view.selectedIndexes()
+        if not indexes:
+            return
         reply = QMessageBox.question(self, '提示', '确定要删除数据吗？', QMessageBox.Yes | QMessageBox.No,
                                      QMessageBox.No)
         if reply != QMessageBox.Yes:
@@ -47,6 +49,8 @@ class DatabaseEditor(DatabaseEditorView):
 
     def edit_data(self):
         index = self.table_view.selectedIndexes()
+        if not index:
+            return
         row = index[0].row()
         selected = index[0].model().index(row, 0)
         if selected:

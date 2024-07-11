@@ -10,7 +10,7 @@ QTextEdit {
 label_style = "QLabel { font-weight: bold; }"
 
 
-class Ui_MainWindow(object):
+class MainWindowView(object):
 
     def setup_ui(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
@@ -28,8 +28,6 @@ class Ui_MainWindow(object):
         self.menu_File.setObjectName("menu_File")
         self.menu_tool = QtWidgets.QMenu(self.menubar)
         self.menu_tool.setObjectName("menu_tool")
-        # self.menu_Search = QtWidgets.QMenu(self.menubar)
-        # self.menu_Search.setObjectName("menu_Search")
 
         # 将菜单添加到菜单栏
         self.menubar.addAction(self.menu_File.menuAction())
@@ -43,6 +41,8 @@ class Ui_MainWindow(object):
         self.exportReport.setObjectName("exportReport")
         self.operate_database = QtWidgets.QAction(MainWindow)
         self.operate_database.setObjectName("operate_database")
+        self.compile = QtWidgets.QAction("compile")
+        self.compile.setObjectName("compile")
         self.exit = QtWidgets.QAction(MainWindow)
         self.exit.setObjectName("exit")
 
@@ -52,6 +52,8 @@ class Ui_MainWindow(object):
         self.menu_File.addAction(self.exportReport)
 
         self.menu_tool.addAction(self.operate_database)
+        self.menu_tool.addSeparator()
+        self.menu_tool.addAction(self.compile)
         self.menu_tool.addSeparator()
         self.menu_tool.addAction(self.exit)
 
@@ -161,6 +163,8 @@ class Ui_MainWindow(object):
 
         self.operate_database.setText(_translate("MainWindow", "修改风险库"))
         self.operate_database.setShortcut(_translate("MainWindow", "Alt+D"))
+        self.compile.setText(_translate("MainWindow", "编译并运行"))
+        self.compile.setShortcut(_translate("MainWindow", "Alt+C"))
         self.exit.setText(_translate("MainWindow", "退出"))
         self.exit.setShortcut(_translate("MainWindow", "Alt+X"))
 
