@@ -72,5 +72,9 @@ class Database:
         params.append(threat.lower())
         self.execute(update_query, params)
 
+    def search_Threat_Func(self, regex_pattern):
+        sql_query = f"SELECT * FROM Threat WHERE threat REGEXP {regex_pattern}"
+        return self.execute(sql_query)
+
     def close(self):
         self.conn.close()
