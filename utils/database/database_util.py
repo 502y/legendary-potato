@@ -1,6 +1,8 @@
 import os
 import sqlite3
 
+from utils.str_utils import is_empty_or_whitespace
+
 
 # file path is "utils/database/database_util.py"
 class SingletonDecorator:
@@ -23,15 +25,6 @@ class Database:
 
         self.conn = sqlite3.connect(db_path, check_same_thread=False)
 
-    def query(self, sql, params=None):
-        cursor = self.conn.cursor()
-        if params:
-            cursor.execute(sql, params)
-        else:
-            cursor.execute(sql)
-        self.conn.commit()
-        return cursor.fetchall()
-
     def execute(self, sql, params=None):
         cursor = self.conn.cursor()
         if params:
@@ -42,30 +35,33 @@ class Database:
         return cursor.fetchall()
 
     def get_all_threat(self):
-        return self.query("SELECT * FROM Threat")
+        return self.execute("SELECT * FROM Threat")
 
     def query_by_threat(self, threat: str):
-        return self.query("SELECT * FROM Threat WHERE threat=?", (threat.lower()))
+        return self.execute("SELECT * FROM Threat WHERE threat=?", (threat.lower(),))
 
-    def insert_threat(self, threat: str, description: str, level: int):
+    def insert_threat(self, description: str, level: int, threat: str = ""):
         self.execute("INSERT INTO Threat (threat,level, description) VALUES (?, ?,?)",
                      (threat.lower(), level, description))
 
     def delete_threat_by_name(self, threat: str):
         return self.execute("DELETE FROM Threat WHERE threat=?", (threat,))
 
-    def update_threat(self, threat: str, description: str, level: int):
+    def update_threat(self, threat: str, new_threat: str, description: str, level: int):
         # 初始化一个空列表来存储SET子句
         set_clauses = []
         # 初始化一个空列表来存储参数值
         params = []
 
-        if description is not None:
+        if not is_empty_or_whitespace(description):
             set_clauses.append("description = ?")
             params.append(description)
         if level is not None:
             set_clauses.append("level = ?")
             params.append(level)
+        if not is_empty_or_whitespace(new_threat):
+            set_clauses.append("threat = ?")
+            params.append(new_threat)
 
         if not set_clauses:
             return
