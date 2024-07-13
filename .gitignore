@@ -3,6 +3,5 @@
 .idea/misc.xml
 .idea/vcs.xml
 .vscode
-*.pyc
 /build/LLVM
 /build/cppcheck/
