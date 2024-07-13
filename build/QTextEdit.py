@@ -1,6 +1,6 @@
-import sys
 from PyQt5.QtCore import QRegExp
 from PyQt5.QtGui import QColor, QTextCharFormat, QFont, QSyntaxHighlighter
+
 
 ## 不用QS的...
 def format(color, style=''):
@@ -25,7 +25,7 @@ def format(color, style=''):
 
 STYLES = {
     'header': format([0, 128, 0]),  # 头文件
-    'd_header': format([60,179,113]),  # 头文件
+    'd_header': format([60, 179, 113]),  # 头文件
     'keyword': format('#2E8B57', 'bold'),
     'operator': format([255, 140, 0]),  # 运算符
     'brace': format([255, 140, 0]),  # 符号
@@ -88,6 +88,7 @@ class CppHighlighter(QSyntaxHighlighter):
     braces = [
         '\{', '\}', '\(', '\)', '\[', '\]',
     ]
+
     def __init__(self, document):
         QSyntaxHighlighter.__init__(self, document)
 
@@ -96,7 +97,7 @@ class CppHighlighter(QSyntaxHighlighter):
         header_rules1 = [('#include\s*<{}>'.format(a), 0, STYLES['header'])
                          for a in CppHighlighter.header]
         # Header rules: #include "XXX.h"
-        header_rules2 = [(r'#include\s*"([^"]+)"', 0, STYLES['d_header']),]
+        header_rules2 = [(r'#include\s*"([^"]+)"', 0, STYLES['d_header']), ]
 
         rules += [(r'\b%s\b' % w, 0, STYLES['keyword'])
                   for w in CppHighlighter.keywords]
@@ -143,6 +144,7 @@ class CppHighlighter(QSyntaxHighlighter):
 
         self.setCurrentBlockState(0)
 
+
 if __name__ == "__main__":
     from PyQt5 import QtWidgets
 
@@ -159,4 +161,3 @@ if __name__ == "__main__":
     editor.setPlainText(infile.read())
 
     app.exec_()
-
