@@ -4,7 +4,7 @@ import os
 import re
 
 from PyQt5.QtCore import QModelIndex
-from PyQt5.QtGui import QColor
+from PyQt5.QtGui import QColor, QTextCursor
 from PyQt5.QtWidgets import QFileDialog, QMainWindow, QMessageBox
 from ordered_set import OrderedSet
 
@@ -21,7 +21,10 @@ from utils.str_utils import is_empty_or_whitespace, search_in_str
 class MainWindowViewController(QMainWindow, MainWindowView):
     def __init__(self, parent=None):
         super().__init__(parent)
+
+        self.var_set = OrderedSet([])
         self.entry_point = ""
+        self.info_text = ""
 
         self.setup_ui(self)
 
@@ -33,9 +36,10 @@ class MainWindowViewController(QMainWindow, MainWindowView):
 
         self.treeView.doubleClicked.connect(self.get_selected_file_from_tree)
         self.search_button.clicked.connect(self.do_search)
+        self.sourceBroswer.selectionChanged.connect(self.select_in_source)
 
-        self.var_set = OrderedSet()
-        self.info_text = ""
+        self.riskBrowser.selectionChanged.connect(self.select_in_risk)
+        # self.riskBrowser.installEventFilter(self.riskBrowser)
 
     def open_File(self):
 
@@ -56,7 +60,6 @@ class MainWindowViewController(QMainWindow, MainWindowView):
 
             if selected_file:
                 self.entry_point = selected_file
-                self.statusbar.showMessage(f"项目入口：{selected_file}")
 
                 # 包含头文件、源文件分析
                 custom_headers, custom_sources = extract_custom_headers_and_sources(selected_file)
@@ -90,6 +93,8 @@ class MainWindowViewController(QMainWindow, MainWindowView):
             if not item.endswith(".c"):
                 QMessageBox.information(self, "警告", "您选择的不是C源文件，程序可能无法正常工作",
                                         QMessageBox.Yes)
+            self.statusbar.showMessage(f"文件：{item}")
+            self.riskBrowser.setText("")
             self.show_source_code(item)
 
     def show_source_code(self, path):
@@ -112,6 +117,10 @@ class MainWindowViewController(QMainWindow, MainWindowView):
 
     def do_search(self):
         content = self.search_line_edit.text()
+        use_reg = self.regex_checkbox.isChecked()
+        self.do_search_with_text(content, use_reg)
+
+    def do_search_with_text(self, content, use_reg):
         if is_empty_or_whitespace(content):
             self.sourceBroswer.setText(
                 f'<pre><code style="white-space: pre-wrap; font-family: inherit;">{html.escape(self.sourceBroswer.toPlainText())}</code></pre>')
@@ -120,8 +129,6 @@ class MainWindowViewController(QMainWindow, MainWindowView):
         source_code = self.sourceBroswer.toPlainText()
         if is_empty_or_whitespace(source_code):
             return
-
-        use_reg = self.regex_checkbox.isChecked()
 
         try:
             color_text = search_in_str(source_code, content, use_reg, on_match=handle_match,
@@ -165,6 +172,59 @@ class MainWindowViewController(QMainWindow, MainWindowView):
                 self.showError(e)
                 return
 
+    def select_in_source(self):
+        selection = self.sourceBroswer.textCursor().selectedText()
+        if is_empty_or_whitespace(selection):
+            return
+
+        pattern = r'\b' + selection + r'\b'
+        text = ""
+        for item in self.var_set:
+            if bool(re.search(pattern, item)):
+                text += item
+        self.riskBrowser.setText(text)
+        print(selection)
+
+    def select_in_risk(self):
+        cursor = self.riskBrowser.textCursor()
+
+        # 获取选中文本的开始位置
+        start_pos = cursor.selectionStart()
+
+        # 移动光标到行的开始
+        cursor.setPosition(start_pos)
+        cursor.movePosition(cursor.StartOfLine)
+
+        # 获取选中文本所在行的结束位置（即下一行的开始位置）
+        cursor.movePosition(cursor.EndOfLine, cursor.KeepAnchor)
+
+        # 获取整行的文本
+        full_line_text = cursor.selectedText()
+        pattern = r'\d+'
+        match = re.findall(pattern, full_line_text)
+        if match:
+            var = re.search(r"\b([a-zA-Z_][a-zA-Z0-9_]*)\b(?=\s+line)", full_line_text)
+            if var:
+                var_pattern = r"\b" + var.group(1) + r"\b"
+                self.do_search_with_text(var_pattern, True)
+            self.scroll_to_line(int(match[-1]))
+        else:
+            return
+
+    def scroll_to_line(self, line):
+        doc = self.sourceBroswer.document()
+        block = doc.findBlockByNumber(line - 1)
+
+        print(f"Block position: {block.position()}, Block number: {block.blockNumber()}")  # 调试输出
+        if not block.isValid():  # 检查块是否有效
+            print("Block is not valid.")
+            return
+
+        cursor = QTextCursor(self.sourceBroswer.textCursor())
+        cursor.setPosition(block.position(), QTextCursor.MoveAnchor)
+        self.sourceBroswer.setTextCursor(cursor)
+        self.sourceBroswer.ensureCursorVisible()
+
     def generate_ast(self, path):
         ast_obj = AST_Tree_json(path)
         json_ = ast_obj.start()
@@ -199,8 +259,6 @@ class MainWindowViewController(QMainWindow, MainWindowView):
 
                             self.var_set.add(
                                 f"{cursor_kind_dict.get(str(ast_ins.kind))}：{ast_ins.spelling} line {ast_ins.location.line}<br><br>")
-                            print(
-                                f"{cursor_kind_dict.get(str(ast_ins.kind))}：{ast_ins.spelling} line {ast_ins.location.line}<br><br>")
 
             for child in ast_ins.get_children():
                 has_child = True
@@ -215,7 +273,7 @@ class MainWindowViewController(QMainWindow, MainWindowView):
 
 def handle_non_match(string: str) -> str:
     safe = html.escape(string)
-    return safe.replace('\n', '<br>')
+    return safe  # .replace('\n', '<br>')
 
 
 def handle_match(match: re.Match) -> str:
