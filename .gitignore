@@ -4,3 +4,4 @@
 .idea/vcs.xml
 .vscode
 /build/LLVM
+/build/cppcheck/
