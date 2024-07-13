@@ -9,7 +9,7 @@ from PyQt5.QtWidgets import QFileDialog, QMainWindow, QMessageBox
 from ordered_set import OrderedSet
 
 from client.controller.database_view_controller import DatabaseEditor
-from client.model.LLVMGeneratedModel import LLVMGeneratedModel, cursor_kind_dict, cursor_kind_ignore_set
+from client.model.LLVMGeneratedModel import cursor_kind_dict
 from client.view.custom_treeview import CustomFileSystemModel
 from client.view.main_view import MainWindowView
 from funcTrace.AstTreeJson import AST_Tree_json
@@ -22,7 +22,6 @@ class MainWindowViewController(QMainWindow, MainWindowView):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.entry_point = ""
-        self.ast_instance: LLVMGeneratedModel
 
         self.setup_ui(self)
 
@@ -171,42 +170,45 @@ class MainWindowViewController(QMainWindow, MainWindowView):
         json_ = ast_obj.start()
         data = json.loads(json_)
         try:
-            self.ast_instance = LLVMGeneratedModel.from_dict(data)
+            # self.ast_instance = LLVMGeneratedModel.from_dict(data)
+            self.ast_instance = ast_obj.get_AST_Root()
         except Exception as e:
             print(e)
 
     def analyze_ast(self, ast_ins, file):
         while True:
             has_child = False
-            if ast_ins.file == file and ast_ins.spelling != file:
-                if ast_ins.kind in cursor_kind_dict:
-                    if ast_ins and ast_ins.spelling is not None and ast_ins.kind is not None and ast_ins.file is not None and ast_ins.location is not None:
-                        # if ast_ins.kind is CursorKind.VAR_DECL:
-                        #    self.var_set.add(f"变量声明：{ast_ins.spelling} line {ast_ins.location[0]}<br>")
-                        # elif ast_ins.kind is CursorKind.TYPE_REF:
-                        #     self.var_set.add(f"变量类型：{ast_ins.spelling}<br><br>")
-                        # elif ast_ins.kind is CursorKind.FUNCTION_DECL:
-                        #     self.var_set.add(f"函数声明：{ast_ins.spelling}() line {ast_ins.location[0]}<br><br>")
-                        # elif ast_ins.kind is CursorKind.PARM_DECL:
-                        #     self.var_set.add(f"参数声明：{ast_ins.spelling}() line {ast_ins.location[0]}<br><br>")
-                        # elif ast_ins.kind is CursorKind.MEMBER_REF:
-                        #     self.var_set.add(f"成员声明：{ast_ins.spelling} line {ast_ins.location[0]}<br><br>")
-                        # elif ast_ins.kind is CursorKind.CALL_EXPR:
-                        #     self.var_set.add(f"函数调用：{ast_ins.spelling} line {ast_ins.location[0]}<br><br>")
-                        if ast_ins.kind in cursor_kind_ignore_set:
-                            pass
-                        else:
-                            self.var_set.add(
-                                f"{cursor_kind_dict.get(ast_ins.kind)}：{ast_ins.spelling} line {ast_ins.location[0]}<br><br>")
-                        print(
-                            f"{cursor_kind_dict.get(ast_ins.kind)}：{ast_ins.spelling} line {ast_ins.location[0]}<br><br>")
+            if ast_ins and hasattr(ast_ins.extent.start, "file") and ast_ins.extent.start.file is not None:
+                if ast_ins.extent.start.file.name == file and ast_ins.spelling != file:
+                    if str(ast_ins.kind) in cursor_kind_dict:
+                        if ast_ins and ast_ins.kind is not None and ast_ins.location is not None:
+                            # if ast_ins.kind is CursorKind.VAR_DECL:
+                            #    self.var_set.add(f"变量声明：{ast_ins.spelling} line {ast_ins.location[0]}<br>")
+                            # elif ast_ins.kind is CursorKind.TYPE_REF:
+                            #     self.var_set.add(f"变量类型：{ast_ins.spelling}<br><br>")
+                            # elif ast_ins.kind is CursorKind.FUNCTION_DECL:
+                            #     self.var_set.add(f"函数声明：{ast_ins.spelling}() line {ast_ins.location[0]}<br><br>")
+                            # elif ast_ins.kind is CursorKind.PARM_DECL:
+                            #     self.var_set.add(f"参数声明：{ast_ins.spelling}() line {ast_ins.location[0]}<br><br>")
+                            # elif ast_ins.kind is CursorKind.MEMBER_REF:
+                            #     self.var_set.add(f"成员声明：{ast_ins.spelling} line {ast_ins.location[0]}<br><br>")
+                            # elif ast_ins.kind is CursorKind.CALL_EXPR:
+                            #     self.var_set.add(f"函数调用：{ast_ins.spelling} line {ast_ins.location[0]}<br><br>")
+                            # elif str(ast_ins.kind) in cursor_kind_ignore_set:
+                            #     pass
 
-            if len(ast_ins.children) != 0:
+                            self.var_set.add(
+                                f"{cursor_kind_dict.get(str(ast_ins.kind))}：{ast_ins.spelling} line {ast_ins.location.line}<br><br>")
+                            print(
+                                f"{cursor_kind_dict.get(str(ast_ins.kind))}：{ast_ins.spelling} line {ast_ins.location.line}<br><br>")
+
+            for child in ast_ins.get_children():
                 has_child = True
+                break
             if not has_child:
                 break
             else:
-                for child in ast_ins.children:
+                for child in ast_ins.get_children():
                     self.analyze_ast(child, file)
                 break
 

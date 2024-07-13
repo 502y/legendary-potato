@@ -2,8 +2,6 @@ import json
 
 from clang.cindex import Index, Config
 
-from client.model.LLVMGeneratedModel import LLVMGeneratedModel
-
 
 class AST_Tree_json:
     _instance = None  # 用于存储单例的私有类变量
@@ -63,13 +61,12 @@ class AST_Tree_json:
     def get_AST_Root(self):
         return self.AST_Root
 
-
-if __name__ == '__main__':
-    path = r"C:\Users\13238\Downloads\Compressed\CJAG-master\CJAG-master\cjag.c"
-    ast_obj = AST_Tree_json(path)
-    json_ = ast_obj.start()
-    data = json.loads(json_)
-    instance = LLVMGeneratedModel.from_dict(data)
-    with open("report.json", 'w') as f:
-        f.write(json_)
-    # print(json_)
+# if __name__ == '__main__':
+#     path = r"C:\Users\13238\Downloads\Compressed\CJAG-master\CJAG-master\cjag.c"
+#     ast_obj = AST_Tree_json(path)
+#     json_ = ast_obj.start()
+#     data = json.loads(json_)
+#     instance = LLVMGeneratedModel.from_dict(data)
+#     with open("report.json", 'w') as f:
+#         f.write(json_)
+#     # print(json_)
