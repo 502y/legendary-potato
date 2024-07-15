@@ -24,7 +24,7 @@ class AST_Tree_json:
             elif not any(arg.startswith('-nostdinc') for arg in args):
                 args.append('-nostdinc')
 
-            self.AST_Root = Index.create().parse(absolute_path, args).cursor
+            self.get_AST_Root(absolute_path)
 
     def serialize_node(self, cursor):
         node_dict = {
@@ -58,15 +58,16 @@ class AST_Tree_json:
         # 虽然但是它能识别[]{};+-=，不能获取它们的标识符....而且获取不到值....
         # print(serialized_json)
 
-    def get_AST_Root(self):
+    def get_AST_Root(self, abs_path):
+        self.AST_Root = Index.create().parse(abs_path, None).cursor
         return self.AST_Root
 
-# if __name__ == '__main__':
-#     path = r"C:\Users\13238\Downloads\Compressed\CJAG-master\CJAG-master\cjag.c"
-#     ast_obj = AST_Tree_json(path)
-#     json_ = ast_obj.start()
-#     data = json.loads(json_)
-#     instance = LLVMGeneratedModel.from_dict(data)
-#     with open("report.json", 'w') as f:
-#         f.write(json_)
-#     # print(json_)
+
+if __name__ == '__main__':
+    path = r"C:\Users\13238\Downloads\Compressed\CJAG-master\CJAG-master\util\getopt_helper.c"
+    ast_obj = AST_Tree_json(path)
+    json_ = ast_obj.start()
+    data = json.loads(json_)
+    with open("report.json", 'w') as f:
+        f.write(json_)
+    # print(json_)

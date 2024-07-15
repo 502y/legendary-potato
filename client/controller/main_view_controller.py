@@ -1,5 +1,4 @@
 import html
-import json
 import os
 import re
 
@@ -9,13 +8,15 @@ from PyQt5.QtWidgets import QFileDialog, QMainWindow, QMessageBox
 from ordered_set import OrderedSet
 
 from client.controller.database_view_controller import DatabaseEditor
-from client.model.LLVMGeneratedModel import cursor_kind_dict
+from client.model.LLVMGeneratedModel import cursor_kind_dict, cursor_kind_ignore_set
 from client.view.custom_treeview import CustomFileSystemModel
 from client.view.main_view import MainWindowView
 from funcTrace.AstTreeJson import AST_Tree_json
 from utils.cmd_utils import compile_and_run
 from utils.file_utils import extract_custom_headers_and_sources
 from utils.str_utils import is_empty_or_whitespace, search_in_str
+
+count = 0
 
 
 class MainWindowViewController(QMainWindow, MainWindowView):
@@ -36,10 +37,10 @@ class MainWindowViewController(QMainWindow, MainWindowView):
 
         self.treeView.doubleClicked.connect(self.get_selected_file_from_tree)
         self.search_button.clicked.connect(self.do_search)
-        self.sourceBroswer.selectionChanged.connect(self.select_in_source)
+        self.sourceBrowser.selectionChanged.connect(self.select_in_source)
 
         self.riskBrowser.selectionChanged.connect(self.select_in_risk)
-        # self.riskBrowser.installEventFilter(self.riskBrowser)
+        self.varBrowser.selectionChanged.connect(self.select_in_var)
 
     def open_File(self):
 
@@ -90,8 +91,8 @@ class MainWindowViewController(QMainWindow, MainWindowView):
             item = self.model.filePath(index)
             if os.path.isdir(item) or item.endswith(".pyc"):
                 return
-            if not item.endswith(".c"):
-                QMessageBox.information(self, "警告", "您选择的不是C源文件，程序可能无法正常工作",
+            if not item.endswith(".c") and not item.endswith(".h"):
+                QMessageBox.information(self, "警告", "您选择的不是C源文件或C头文件，程序可能无法正常工作",
                                         QMessageBox.Yes)
             self.statusbar.showMessage(f"文件：{item}")
             self.riskBrowser.setText("")
@@ -100,9 +101,9 @@ class MainWindowViewController(QMainWindow, MainWindowView):
     def show_source_code(self, path):
         with open(path, "r") as file_:
             content = file_.read()
-            self.sourceBroswer.setText(
+            self.sourceBrowser.setText(
                 f'<pre><code style="white-space: pre-wrap; font-family: inherit;">{html.escape(content)}</code></pre>')
-        self.var_set = OrderedSet()
+        self.var_set = OrderedSet([])
         var_text = ""
         try:
             self.generate_ast(path)
@@ -122,11 +123,11 @@ class MainWindowViewController(QMainWindow, MainWindowView):
 
     def do_search_with_text(self, content, use_reg):
         if is_empty_or_whitespace(content):
-            self.sourceBroswer.setText(
-                f'<pre><code style="white-space: pre-wrap; font-family: inherit;">{html.escape(self.sourceBroswer.toPlainText())}</code></pre>')
+            self.sourceBrowser.setText(
+                f'<pre><code style="white-space: pre-wrap; font-family: inherit;">{html.escape(self.sourceBrowser.toPlainText())}</code></pre>')
             return
 
-        source_code = self.sourceBroswer.toPlainText()
+        source_code = self.sourceBrowser.toPlainText()
         if is_empty_or_whitespace(source_code):
             return
 
@@ -138,7 +139,7 @@ class MainWindowViewController(QMainWindow, MainWindowView):
             return
         color_text = f'<pre><code style="white-space: pre-wrap; font-family: inherit;">{color_text}</code></pre>'
 
-        self.sourceBroswer.setText(color_text)
+        self.sourceBrowser.setText(color_text)
 
     def export_report(self):
         file_name, _ = QFileDialog.getSaveFileName(self, "QFileDialog.getSaveFileName()", "",
@@ -173,7 +174,7 @@ class MainWindowViewController(QMainWindow, MainWindowView):
                 return
 
     def select_in_source(self):
-        selection = self.sourceBroswer.textCursor().selectedText()
+        selection = self.sourceBrowser.textCursor().selectedText()
         if is_empty_or_whitespace(selection):
             return
 
@@ -183,7 +184,6 @@ class MainWindowViewController(QMainWindow, MainWindowView):
             if bool(re.search(pattern, item)):
                 text += item
         self.riskBrowser.setText(text)
-        print(selection)
 
     def select_in_risk(self):
         cursor = self.riskBrowser.textCursor()
@@ -211,69 +211,84 @@ class MainWindowViewController(QMainWindow, MainWindowView):
         else:
             return
 
-    def scroll_to_line(self, line):
-        doc = self.sourceBroswer.document()
-        block = doc.findBlockByNumber(line - 1)
+    def select_in_var(self):
+        cursor = self.varBrowser.textCursor()
 
-        print(f"Block position: {block.position()}, Block number: {block.blockNumber()}")  # 调试输出
-        if not block.isValid():  # 检查块是否有效
-            print("Block is not valid.")
+        # 获取选中文本的开始位置
+        start_pos = cursor.selectionStart()
+
+        # 移动光标到行的开始
+        cursor.setPosition(start_pos)
+        cursor.movePosition(cursor.StartOfLine)
+
+        # 获取选中文本所在行的结束位置
+        cursor.movePosition(cursor.EndOfLine, cursor.KeepAnchor)
+
+        # 获取整行的文本
+        full_line_text = cursor.selectedText()
+        pattern = r'\d+'
+        match = re.findall(pattern, full_line_text)
+        if match:
+            var = re.search(r"\b([a-zA-Z_][a-zA-Z0-9_]*)\b(?=\s+line)", full_line_text)
+            if var:
+                var_pattern = r"\b" + var.group(1) + r"\b"
+                self.do_search_with_text(var_pattern, True)
+            self.scroll_to_line(int(match[-1]))
+        else:
             return
 
-        cursor = QTextCursor(self.sourceBroswer.textCursor())
+    def scroll_to_line(self, line):
+        # 获取格式文档
+        doc = self.sourceBrowser.document()
+        # 获取行号对应内容
+        block = doc.findBlockByNumber(line - 1)
+
+        # 创建游标并滚动到行号
+        cursor = QTextCursor(self.sourceBrowser.textCursor())
         cursor.setPosition(block.position(), QTextCursor.MoveAnchor)
-        self.sourceBroswer.setTextCursor(cursor)
-        self.sourceBroswer.ensureCursorVisible()
+        self.sourceBrowser.setTextCursor(cursor)
+        self.sourceBrowser.ensureCursorVisible()
 
     def generate_ast(self, path):
         ast_obj = AST_Tree_json(path)
-        json_ = ast_obj.start()
-        data = json.loads(json_)
         try:
-            # self.ast_instance = LLVMGeneratedModel.from_dict(data)
-            self.ast_instance = ast_obj.get_AST_Root()
+            self.ast_instance = ast_obj.get_AST_Root(path)
         except Exception as e:
             print(e)
 
     def analyze_ast(self, ast_ins, file):
         while True:
-            has_child = False
+            # AST对象存在、能够获取其文件路径
             if ast_ins and hasattr(ast_ins.extent.start, "file") and ast_ins.extent.start.file is not None:
+                # 对象属于正在查看的文件且不为根对象
                 if ast_ins.extent.start.file.name == file and ast_ins.spelling != file:
-                    if str(ast_ins.kind) in cursor_kind_dict:
-                        if ast_ins and ast_ins.kind is not None and ast_ins.location is not None:
-                            # if ast_ins.kind is CursorKind.VAR_DECL:
-                            #    self.var_set.add(f"变量声明：{ast_ins.spelling} line {ast_ins.location[0]}<br>")
-                            # elif ast_ins.kind is CursorKind.TYPE_REF:
-                            #     self.var_set.add(f"变量类型：{ast_ins.spelling}<br><br>")
-                            # elif ast_ins.kind is CursorKind.FUNCTION_DECL:
-                            #     self.var_set.add(f"函数声明：{ast_ins.spelling}() line {ast_ins.location[0]}<br><br>")
-                            # elif ast_ins.kind is CursorKind.PARM_DECL:
-                            #     self.var_set.add(f"参数声明：{ast_ins.spelling}() line {ast_ins.location[0]}<br><br>")
-                            # elif ast_ins.kind is CursorKind.MEMBER_REF:
-                            #     self.var_set.add(f"成员声明：{ast_ins.spelling} line {ast_ins.location[0]}<br><br>")
-                            # elif ast_ins.kind is CursorKind.CALL_EXPR:
-                            #     self.var_set.add(f"函数调用：{ast_ins.spelling} line {ast_ins.location[0]}<br><br>")
-                            # elif str(ast_ins.kind) in cursor_kind_ignore_set:
-                            #     pass
+                    # 对象存在有效类型且无需忽略
+                    if ast_ins.kind is not None and str(ast_ins.kind) not in cursor_kind_ignore_set:
+                        # 对象存在行数且包含有效解析
+                        if ast_ins.location is not None and not is_empty_or_whitespace(
+                                ast_ins.spelling):
+                            # 未命名的内容
+                            if str(ast_ins.kind) not in cursor_kind_dict:
+                                global count
+                                count += 1
+                                print(count)
+                                print(f"{str(ast_ins.kind)}：{ast_ins.spelling} line {ast_ins.location.line}<br><br>")
+                                self.var_set.add(
+                                    f"{str(ast_ins.kind)}：{ast_ins.spelling} line {ast_ins.location.line}<br><br>")
+                            # 命名内容
+                            else:
+                                self.var_set.add(
+                                    f"{cursor_kind_dict.get(str(ast_ins.kind))}：{ast_ins.spelling} line {ast_ins.location.line}<br><br>")
 
-                            self.var_set.add(
-                                f"{cursor_kind_dict.get(str(ast_ins.kind))}：{ast_ins.spelling} line {ast_ins.location.line}<br><br>")
-
+            if not any(ast_ins.get_children()):
+                break
             for child in ast_ins.get_children():
-                has_child = True
-                break
-            if not has_child:
-                break
-            else:
-                for child in ast_ins.get_children():
-                    self.analyze_ast(child, file)
-                break
+                self.analyze_ast(child, file)
+            break
 
 
 def handle_non_match(string: str) -> str:
-    safe = html.escape(string)
-    return safe  # .replace('\n', '<br>')
+    return html.escape(string)
 
 
 def handle_match(match: re.Match) -> str:

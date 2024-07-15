@@ -108,9 +108,9 @@ class MainWindowView(object):
         label_var.setStyleSheet(label_style)
 
         # 在垂直分割器中添加两个 QTextBrowser
-        self.sourceBroswer = QtWidgets.QTextBrowser(self.centralwidget)
-        self.sourceBroswer.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
-        vertical_splitter.addWidget(self.sourceBroswer)
+        self.sourceBrowser = QtWidgets.QTextBrowser(self.centralwidget)
+        self.sourceBrowser.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)
+        vertical_splitter.addWidget(self.sourceBrowser)
 
         self.riskBrowser = QtWidgets.QTextBrowser(self.centralwidget)
         self.riskBrowser.setSizePolicy(QtWidgets.QSizePolicy.Expanding, QtWidgets.QSizePolicy.Expanding)

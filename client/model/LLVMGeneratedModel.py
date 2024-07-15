@@ -650,12 +650,14 @@
 #     CursorKind.TYPEDEF_DECL: "类型定义声明"
 # }
 
-cursor_kind_ignore_set = {
-    "CursorKind.STRING_LITERAL",
-    "CursorKind.DECL_REF_EXPR",
-    "CursorKind.CHARACTER_LITERAL",
-    "CursorKind.UNEXPOSED_EXPR"
-}
+# cursor_kind_ignore_set = {
+#     "CursorKind.STRING_LITERAL",
+#     "CursorKind.DECL_REF_EXPR",
+#     "CursorKind.CHARACTER_LITERAL",
+#     "CursorKind.UNEXPOSED_EXPR"
+# }
+
+cursor_kind_ignore_set = {"CursorKind.STRING_LITERAL", }
 
 cursor_kind_dict = {
     "CursorKind.CALL_EXPR": "函数调用表达式",
