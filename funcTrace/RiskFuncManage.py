@@ -66,24 +66,26 @@ class FunctionManager:
         checker = CppCheck(file_path).checkMemoryLeaks()
         if checker:
             for line in checker:
-                pattern = r'\'path\': \'(?P<path>.+?)\', \'location\': \'(?P<location>.+?)\', \'content\': \'(?P<content>.+?)\', \'code\': \'(?P<code>.+?)\''
+                pattern = r'\'path\': \'(?P<path>.+?)\', \'location\': \'(?P<location_line>\d+),(?P<location_column>\d+)\', \'content\': \'(?P<content>.+?)\', \'code\': \'(?P<code>.+?)\''
                 match = re.match(pattern, str(line))
                 if match:
                     path = match.group(1)
-                    location = match.group(2)
-                    content = match.group(3)
+                    location_line = match.group(2)
+                    location_column = match.group(3)
+                    content = match.group(4)
                 else:
                     path = None
-                    location = None
+                    location_line = None
+                    location_column = None
                     content = None
                 pattern_ = r'\[(.*?)\]'
                 leak_unused_content = re.match(pattern_, str(content))
                 if leak_unused_content in leak_dict:
                     num_leak += 1
-                    str_leak = str_leak + "文件：" + str(path) + "\t位置：" + str(location) + "\n"
+                    str_leak = str_leak + "位于 " + str(path) + " 文件\t第" + str(location_line) + "行 第" + str(location_column) + "列\n"
                 if leak_unused_content in unused_dict:
                     num_unused += 1
-                    str_unused = str_unused + "文件：" + str(path) + "\t位置：" + str(location) + "\n"
+                    str_unused = str_unused + "位于 " + str(path) + " 文件\t第" + str(location_line) + "行 第" + str(location_column) + "列\n"
 
         str_risk = str_risk_h + "\n" + str_risk_m + "\n" + str_risk_l + "\n" + str_leak + "\n" + str_unused + "\n"
         str_risk = "统计结果：\n" + "\t高等风险函数数量\t" + str(num_high) + "\n" + "\t中等风险函数数量\t" + str(num_medium) + "\n" + "\t低风险函数数量\t\t" + str(num_low) + "\n" + "\t内存泄露函数数量\t" + str(num_leak) + "\n" + "\t无效函数数量\t\t" + str(num_unused) + "\n" + str_risk
@@ -143,7 +145,7 @@ class FunctionManager:
             file_path = match.group('file_path')
             line = match.group('line')
             column = match.group('column')
-            return "文件：" + str(file_path) + "\t位置：" + str(line) + "," + str(column)
+            return "位于 " + str(file_path) + " 文件\t第" + str(line) + "行 第" + str(column) + "列"
         return str_
 
 leak_dict = {
