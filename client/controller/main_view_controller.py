@@ -45,7 +45,7 @@ class MainWindowViewController(QMainWindow, MainWindowView):
     def open_File(self):
 
         dialog = QFileDialog()
-        dialog.setNameFilter("C Source Files (*.c)")
+        dialog.setNameFilter("C源文件(*.c)")
         dialog.setViewMode(QFileDialog.Detail)
 
         if dialog.exec_():
@@ -66,6 +66,7 @@ class MainWindowViewController(QMainWindow, MainWindowView):
                 custom_headers, custom_sources = extract_custom_headers_and_sources(selected_file)
                 paths = [os.path.abspath(header) for header in custom_headers] + [os.path.abspath(source) for source in
                                                                                   custom_sources]
+                self.common_prefix = os.path.commonpath(paths)
 
                 self.model = CustomFileSystemModel(paths)
 
