@@ -55,13 +55,13 @@ class FunctionManager:
                 self.analyze_ast(self.ast_instance, self.file_path, str(line[0]), line[1])
                 if line[1] == 0:
                     if num_total < num_high:
-                        str_risk_h = str_risk_h + str(line[0]) + ":\n\t" + str_high + str(line[2]) + "\n\t"
+                        str_risk_h = str_risk_h + str(line[0]) + ":\t" + str(line[2]) + "\n\t" + str_high + "\n\t"
                 if line[1] == 1:
                     if num_total < num_medium:
-                        str_risk_m = str_risk_m + str(line[0]) + ":\n\t" + str_medium + str(line[2]) + "\n\t"
+                        str_risk_m = str_risk_m + str(line[0]) + ":\t" + str(line[2]) + "\n\t" + str_medium + "\n\t"
                 if line[1] == 2:
                     if num_total < num_low:
-                        str_risk_l = str_risk_l + str(line[0]) + ":\n\t" + str_low + str(line[2]) + "\n\t"
+                        str_risk_l = str_risk_l + str(line[0]) + ":\t" + str(line[2]) + "\n\t" + str_low + "\n\t"
 
         checker = CppCheck(file_path).checkMemoryLeaks()
         if checker:
