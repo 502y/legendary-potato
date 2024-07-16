@@ -149,7 +149,7 @@ if __name__ == "__main__":
     from PyQt5 import QtWidgets
 
     app = QtWidgets.QApplication([])
-    editor = QtWidgets.QPlainTextEdit()
+    editor = QtWidgets.QTextBrowser()
     editor.setStyleSheet("""QPlainTextEdit{
         font-family:'Consolas'; 
         background-color: rgb(204,232,207);}""")
@@ -157,7 +157,7 @@ if __name__ == "__main__":
     editor.show()
 
     # Load sample.cpp into the editor for demo purposes
-    infile = open('C:/Users/86177/Desktop/test/test.c', 'r', encoding='utf-8')
+    infile = open(r"C:\Users\13238\Downloads\Compressed\CJAG-master\CJAG-master\cjag.c", 'r', encoding='utf-8')
     editor.setPlainText(infile.read())
 
     app.exec_()

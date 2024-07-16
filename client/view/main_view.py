@@ -3,7 +3,7 @@ from PyQt5.QtWidgets import QMessageBox
 
 stylesheet = """
 QTextEdit {
-    background-color: #cccccc; /* 灰色背景 */
+    background-color: #cccccc; /* 灰色 */
 }
 """
 
@@ -37,6 +37,8 @@ class MainWindowView(object):
         # 创建动作
         self.openFile = QtWidgets.QAction(MainWindow)
         self.openFile.setObjectName("openFile")
+        self.recentFile = QtWidgets.QMenu(MainWindow)
+        self.recentFile.setObjectName("recentFile")
         self.exportReport = QtWidgets.QAction(MainWindow)
         self.exportReport.setObjectName("exportReport")
         self.operate_database = QtWidgets.QAction(MainWindow)
@@ -48,6 +50,7 @@ class MainWindowView(object):
 
         # 将动作添加到菜单
         self.menu_File.addAction(self.openFile)
+        self.menu_File.addMenu(self.recentFile)
         self.menu_File.addSeparator()
         self.menu_File.addAction(self.exportReport)
 
@@ -154,8 +157,8 @@ class MainWindowView(object):
 
         self.menu_File.setTitle(_translate("MainWindow", "文件(&F)"))
         self.menu_tool.setTitle(_translate("MainWindow", "工具(&T)"))
-        # self.menu_Search.setTitle(_translate("MainWindow", "搜索(&S)"))
 
+        self.recentFile.setTitle(_translate("MainWindow", "最近打开的文件"))
         self.openFile.setText(_translate("MainWindow", "打开文件"))
         self.openFile.setShortcut(_translate("MainWindow", "Alt+O"))
         self.exportReport.setText(_translate("MainWindow", "导出报告"))

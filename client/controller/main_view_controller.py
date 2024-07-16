@@ -1,17 +1,20 @@
 import html
+import json
 import os
 import re
 
 from PyQt5.QtCore import QModelIndex
 from PyQt5.QtGui import QColor, QTextCursor
-from PyQt5.QtWidgets import QFileDialog, QMainWindow, QMessageBox
+from PyQt5.QtWidgets import QFileDialog, QMainWindow, QMessageBox, QAction
 from ordered_set import OrderedSet
 
 from client.controller.database_view_controller import DatabaseEditor
 from client.model.LLVMGeneratedModel import cursor_kind_dict, cursor_kind_ignore_set
+from client.model.recent_file_model import recent_file_from_dict, RecentProjectElement, recent_file_to_dict
 from client.view.custom_treeview import CustomFileSystemModel
 from client.view.main_view import MainWindowView
 from funcTrace.AstTreeJson import AST_Tree_json
+from funcTrace.RiskFuncManage import FunctionManager
 from utils.cmd_utils import compile_and_run
 from utils.file_utils import extract_custom_headers_and_sources
 from utils.str_utils import is_empty_or_whitespace, search_in_str
@@ -29,7 +32,7 @@ class MainWindowViewController(QMainWindow, MainWindowView):
 
         self.setup_ui(self)
 
-        self.openFile.triggered.connect(self.open_File)
+        self.openFile.triggered.connect(self.select_file_and_open)
         self.exportReport.triggered.connect(self.export_report)
         self.exit.triggered.connect(self.try_exit)
         self.operate_database.triggered.connect(self.show_database_window)
@@ -42,8 +45,19 @@ class MainWindowViewController(QMainWindow, MainWindowView):
         self.riskBrowser.selectionChanged.connect(self.select_in_risk)
         self.varBrowser.selectionChanged.connect(self.select_in_var)
 
-    def open_File(self):
+        self.load_recent_file(self.recentFile)
 
+    def load_recent_file(self, menu):
+        encrypted_file = os.path.join(os.getcwd(), "recent_file.json")
+        with open(encrypted_file, "r") as enc_file:
+            recent_file_json_set = json.loads(enc_file.read())
+            self.recent_file_dict = recent_file_from_dict(recent_file_json_set)
+            for line in self.recent_file_dict:
+                action = QAction(line.project_name, self)
+                action.triggered.connect(lambda checked, p=line.project_path: self.open_File(p))
+                menu.addAction(action)
+
+    def select_file_and_open(self):
         dialog = QFileDialog()
         dialog.setNameFilter("C源文件(*.c)")
         dialog.setViewMode(QFileDialog.Detail)
@@ -51,41 +65,66 @@ class MainWindowViewController(QMainWindow, MainWindowView):
         if dialog.exec_():
             selected_file = dialog.selectedFiles()[0]
             # 判断是否包含C入口
-            with open(selected_file, "r") as file:
-                content = file.read()
+            if selected_file:
+                with open(selected_file, "r") as file:
+                    content = file.read()
 
                 pattern = r"\b(int|void)\b\s+main\s*\(\s*(?:int\s+argc,\s*(?:char\s*\*\s*){1,2}argv\[\])?\s*\)\s*\{.*\}"
                 if len(re.findall(pattern, content)):
                     QMessageBox.information(self, "警告", "请选择包含main函数的C源文件", QMessageBox.Yes)
                     return
 
-            if selected_file:
-                self.entry_point = selected_file
-
-                # 包含头文件、源文件分析
-                custom_headers, custom_sources = extract_custom_headers_and_sources(selected_file)
-                paths = [os.path.abspath(header) for header in custom_headers] + [os.path.abspath(source) for source in
-                                                                                  custom_sources]
-                self.common_prefix = os.path.commonpath(paths)
-
-                self.model = CustomFileSystemModel(paths)
-
-                self.treeView.setModel(self.model)
-                self.treeView.setRootIsDecorated(True)
-                self.treeView.setSortingEnabled(True)
-                # self.model.setRootPath(selected_file)
-                self.model.setReadOnly(True)
-                # 展开所有路径
-                common_root = os.path.commonpath(paths)
-                index = self.model.index(common_root)
-                self.treeView.setRootIndex(index)
-                self.treeView.expandAll()
-
-                self.show_source_code(selected_file)
+                self.open_File(selected_file)
 
             else:
                 self.statusbar.showMessage("选择的文件无效")
                 return
+
+    def open_File(self, path):
+        try:
+            self.entry_point = path
+
+            self.insert_into_recent(path)
+
+            # 包含头文件、源文件分析
+            self.custom_headers, self.custom_sources = extract_custom_headers_and_sources(path)
+            paths = [os.path.abspath(header) for header in self.custom_headers] + [os.path.abspath(source) for source in
+                                                                                   self.custom_sources]
+            if len(paths) == 0:
+                paths.append(path)
+
+            self.common_prefix = os.path.commonpath(paths)
+
+            self.model = CustomFileSystemModel(paths)
+
+            self.treeView.setModel(self.model)
+            self.treeView.setRootIsDecorated(True)
+            self.treeView.setSortingEnabled(True)
+            # self.model.setRootPath(selected_file)
+            self.model.setReadOnly(True)
+            # 展开所有路径
+            common_root = os.path.commonpath(paths)
+            index = self.model.index(common_root)
+            self.treeView.setRootIndex(index)
+            self.treeView.expandAll()
+
+            self.show_source_code(path)
+        except Exception as e:
+            self.showError(e)
+
+    def insert_into_recent(self, path):
+        exist = False
+        for instance in self.recent_file_dict:
+            if instance.project_path == path:
+                exist = True
+                break
+        if not exist:
+            new_ins = RecentProjectElement(name=path, path=path)
+            self.recent_file_dict.append(new_ins)
+
+            with open(os.path.join(os.getcwd(), "recent_file.json"), "w") as enc_file:
+                json.dump(recent_file_to_dict(self.recent_file_dict), enc_file)
+            self.load_recent_file(self.recentFile)
 
     def get_selected_file_from_tree(self, index: QModelIndex):
         if index.isValid():
@@ -143,13 +182,23 @@ class MainWindowViewController(QMainWindow, MainWindowView):
         self.sourceBrowser.setText(color_text)
 
     def export_report(self):
+        if is_empty_or_whitespace(self.entry_point):
+            self.showError("请先选择程序")
+            return
         file_name, _ = QFileDialog.getSaveFileName(self, "QFileDialog.getSaveFileName()", "",
-                                                   "Json文档(*.json);;All Files (*)")
-        report = "Some content from report system"
+                                                   "文本文档(*.txt);;All Files (*)")
+        report_set = OrderedSet()
+        for path in self.custom_sources:
+            report_set.add(FunctionManager(path).riskFunction())
+
+        text = ""
+        for report in report_set:
+            text = text + report + "\n\n\n"
+
         if file_name:
             try:
                 with open(file_name, 'w') as f:
-                    f.write(report)
+                    f.write(text)
                 self.showSuccessMessage(text="保存成功", title="成功")
             except Exception as e:
                 self.showError(e)
