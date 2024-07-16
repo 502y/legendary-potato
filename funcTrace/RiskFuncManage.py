@@ -171,7 +171,7 @@ class FunctionManager:
         return [num_high, num_medium, num_low, num_leak, num_unused]
 
     def get_fig_labels_1(self):
-        return ["HighRiskFunction", "HighRiskFunction", "HighRiskFunction", "LeakFunction", "UnusedFunction"]
+        return ["HighRiskFunction", "MediumRiskFunction", "LowRiskFunction", "LeakFunction", "UnusedFunction"]
 
     def get_fig_sizes_high(self):
         global high_sizes
