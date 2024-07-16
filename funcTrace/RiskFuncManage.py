@@ -26,7 +26,6 @@ high_sizes = []
 medium_sizes = []
 low_sizes = []
 
-
 class FunctionManager:
     def __init__(self, file_path):
         self.file_path = file_path
@@ -103,18 +102,14 @@ class FunctionManager:
                 leak_unused_content = re.match(pattern_, str(content))
                 if leak_unused_content in leak_dict:
                     num_leak += 1
-                    str_leak = str_leak + "位于 " + str(path) + " 文件\t第" + str(location_line) + "行 第" + str(
-                        location_column) + "列\n"
+                    str_leak = str_leak + "位于 " + str(path) + " 文件\t第" + str(location_line) + "行 第" + str(location_column) + "列\n"
                 if leak_unused_content in unused_dict:
                     num_unused += 1
-                    str_unused = str_unused + "位于 " + str(path) + " 文件\t第" + str(location_line) + "行 第" + str(
-                        location_column) + "列\n"
+                    str_unused = str_unused + "位于 " + str(path) + " 文件\t第" + str(location_line) + "行 第" + str(location_column) + "列\n"
 
         str_risk = str_risk_h + "\n" + str_risk_m + "\n" + str_risk_l + "\n" + str_leak + "\n" + str_unused + "\n"
-        str_risk = "统计结果：\n" + "\t高等风险函数数量\t" + str(num_high) + "\n" + "\t中等风险函数数量\t" + str(
-            num_medium) + "\n" + "\t低风险函数数量\t\t" + str(num_low) + "\n" + "\t内存泄露函数数量\t" + str(
-            num_leak) + "\n" + "\t无效函数数量\t\t" + str(num_unused) + "\n" + str_risk
-        return str_risk
+        str_risk = "统计结果：\n" + "\t高等风险函数数量\t" + str(num_high) + "\n" + "\t中等风险函数数量\t" + str(num_medium) + "\n" + "\t低风险函数数量\t\t" + str(num_low) + "\n" + "\t内存泄露函数数量\t" + str(num_leak) + "\n" + "\t无效函数数量\t\t" + str(num_unused) + "\n" + str_risk
+        return "============\n" + self.file_path + "\n" + str_risk
 
     def generate_ast(self, path):
         ast_obj = AST_Tree_json(path)
@@ -155,6 +150,7 @@ class FunctionManager:
                                     str_low = str_low + self.form_output(str(ast_ins.location)) + "\n\t"
                                     str_total = str(ast_ins.location)
 
+
             if not any(ast_ins.get_children()):
                 break
             for child in ast_ins.get_children():
@@ -176,7 +172,7 @@ class FunctionManager:
         return [num_high, num_medium, num_low, num_leak, num_unused]
 
     def get_fig_labels_1(self):
-        return ["HighRiskFunction", "HighRiskFunction", "HighRiskFunction", "LeakFunction", "UnusedFunction"]
+        return ["HighRiskFunction", "MediumRiskFunction", "LowRiskFunction", "LeakFunction", "UnusedFunction"]
 
     def get_fig_sizes_high(self):
         global high_sizes
@@ -202,7 +198,6 @@ class FunctionManager:
         global low_labels
         return low_labels
 
-
 leak_dict = {
     "constParameter",
     "constVariablePointer",
@@ -224,9 +219,10 @@ unused_dict = {
     "unusedStructMember"
 }
 
+
 if __name__ == "__main__":
     # file_path = r'C:\Users\86177\Desktop\大作业\登录系统（会员管理）\登录系统.cpp'
-    file_path = r"C:/Users/13238/Downloads/Compressed/CJAG-master/CJAG-master/cjag.c"
+    file_path = r"C:\Users\86177\Desktop\test\test.c"
     manager = FunctionManager(file_path)
     results = manager.riskFunction()
 

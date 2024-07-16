@@ -68,7 +68,7 @@ if __name__ == "__main__":
     results = manager.riskFunction()
     print(results)
 
-    labels = manager.get_fig_labels_1()
-    sizes = manager.get_fig_sizes_1()
-    path_name = getFig(labels, sizes, r"C:\Users\86177\Desktop\test", "total","test.jpg",True).get_fig()
+    labels = manager.get_fig_labels_high()
+    sizes = manager.get_fig_sizes_high()
+    path_name = getFig(labels, sizes, r"C:\Users\86177\Desktop\test", "total",None,True).get_fig()
     print(path_name)
