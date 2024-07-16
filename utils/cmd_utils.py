@@ -6,7 +6,7 @@ from PyQt5.QtGui import QColor
 
 
 def compile_and_run(c_code):
-    with tempfile.NamedTemporaryFile(mode='w', suffix='.c', delete=False, delete_on_close=True) as tmp_file:
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.c', delete=False) as tmp_file:
         tmp_file.write(c_code)
         c_source_path = tmp_file.name
 

@@ -31,6 +31,26 @@ class FunctionManager:
     def __init__(self, file_path):
         self.file_path = file_path
         self.db = Database()
+        self.str_total = ""
+        self.num_high = 0
+        self.num_medium = 0
+        self.num_low = 0
+        self.str_high = ""
+        self.str_medium = ""
+        self.str_low = ""
+        self.num_unused = 0
+        self.str_unused = "无效函数列表：\n"
+        self.num_leak = 0
+        self.str_leak = "内存泄露函数列表：\n"
+        self.str_risk_h = "高风险函数列表：\n\t"
+        self.str_risk_m = "中风险函数列表：\n\t"
+        self.str_risk_l = "低风险函数列表：\n\t"
+        self.high_labels = []
+        self.medium_labels = []
+        self.low_labels = []
+        self.high_sizes = []
+        self.medium_sizes = []
+        self.low_sizes = []
 
     def riskFunction(self):
         str_risk = ""
@@ -48,11 +68,11 @@ class FunctionManager:
         global str_risk_h
         global str_risk_m
         global str_risk_l
-        global high_label
+        global high_labels
         global high_sizes
-        global medium_label
+        global medium_labels
         global medium_sizes
-        global low_label
+        global low_labels
         global low_sizes
         for line in all_threats:
             if (line[1] == 0) or (line[1] == 1) or (line[1] == 2):
@@ -201,6 +221,48 @@ class FunctionManager:
     def get_fig_labels_low(self):
         global low_labels
         return low_labels
+
+    def free_manager(self):
+        global str_high
+        global str_medium
+        global str_low
+        global num_high
+        global num_medium
+        global num_low
+        global str_unused
+        global num_unused
+        global str_leak
+        global num_leak
+        global str_risk_h
+        global str_risk_m
+        global str_risk_l
+        global high_labels
+        global high_sizes
+        global medium_labels
+        global medium_sizes
+        global low_labels
+        global low_sizes
+        global str_total
+        str_total = ""
+        num_high = 0
+        num_medium = 0
+        num_low = 0
+        str_high = ""
+        str_medium = ""
+        str_low = ""
+        num_unused = 0
+        str_unused = "无效函数列表：\n"
+        num_leak = 0
+        str_leak = "内存泄露函数列表：\n"
+        str_risk_h = "高风险函数列表：\n\t"
+        str_risk_m = "中风险函数列表：\n\t"
+        str_risk_l = "低风险函数列表：\n\t"
+        high_labels = []
+        medium_labels = []
+        low_labels = []
+        high_sizes = []
+        medium_sizes = []
+        low_sizes = []
 
 
 leak_dict = {

@@ -46,6 +46,8 @@ def export_report_to_txt(file_name: str, custom_sources):
     for path in custom_sources:
         manager = FunctionManager(path)
         report_set.add(manager.riskFunction())
+        print(manager.get_fig_labels_high())
+        print(manager.get_fig_sizes_high())
 
         if len(manager.get_fig_sizes_high()) != 0:
             getFig(manager.get_fig_labels_high(), manager.get_fig_sizes_high(), os.path.dirname(file_name),
@@ -59,6 +61,8 @@ def export_report_to_txt(file_name: str, custom_sources):
             getFig(manager.get_fig_labels_low(), manager.get_fig_sizes_low(), os.path.dirname(file_name),
                    "Low risk",
                    f"{os.path.basename(path)}_low_risk.jpg", True).get_fig()
+
+        manager.free_manager()
 
     text = ""
     for report in report_set:
@@ -96,5 +100,6 @@ def export_report_to_doc(file_name: str, custom_sources):
             os.remove(low)
 
         doc.add_page_break()
+        manager.free_manager()
 
     doc.save(file_name)
