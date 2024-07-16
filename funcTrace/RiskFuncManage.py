@@ -1,3 +1,6 @@
+from utils.database.database_util import *
+from funcTrace.AstTreeJson import AST_Tree_json
+from CodeCheck import *
 import re
 
 from funcTrace.AstTreeJson import AST_Tree_json
@@ -19,6 +22,12 @@ str_risk_h = "高风险函数列表：\n\t"
 str_risk_m = "中风险函数列表：\n\t"
 str_risk_l = "低风险函数列表：\n\t"
 
+high_labels = []
+medium_labels = []
+low_labels = []
+high_sizes = []
+medium_sizes = []
+low_sizes = []
 
 class FunctionManager:
     def __init__(self, file_path):
@@ -41,6 +50,12 @@ class FunctionManager:
         global str_risk_h
         global str_risk_m
         global str_risk_l
+        global high_label
+        global high_sizes
+        global medium_label
+        global medium_sizes
+        global low_label
+        global low_sizes
         for line in all_threats:
             if (line[1] == 0) or (line[1] == 1) or (line[1] == 2):
                 num_total = 0
@@ -57,15 +72,21 @@ class FunctionManager:
                 self.analyze_ast(self.ast_instance, self.file_path, str(line[0]), line[1])
                 if line[1] == 0:
                     if num_total < num_high:
+                        high_labels.append(str(line[0]))
+                        high_sizes.append(num_high - num_total)
                         str_risk_h = str_risk_h + str(line[0]) + ":\t" + str(line[2]) + "\n\t" + str_high + "\n\t"
                 if line[1] == 1:
                     if num_total < num_medium:
+                        medium_labels.append(str(line[0]))
+                        medium_sizes.append(num_medium - num_total)
                         str_risk_m = str_risk_m + str(line[0]) + ":\t" + str(line[2]) + "\n\t" + str_medium + "\n\t"
                 if line[1] == 2:
                     if num_total < num_low:
+                        low_labels.append(str(line[0]))
+                        low_sizes.append(num_low - num_total)
                         str_risk_l = str_risk_l + str(line[0]) + ":\t" + str(line[2]) + "\n\t" + str_low + "\n\t"
 
-        checker = CppCheck(file_path).checkMemoryLeaks()
+        checker = CppCheck(self.file_path).checkMemoryLeaks()
         if checker:
             for line in checker:
                 pattern = r'\'path\': \'(?P<path>.+?)\', \'location\': \'(?P<location_line>\d+),(?P<location_column>\d+)\', \'content\': \'(?P<content>.+?)\', \'code\': \'(?P<code>.+?)\''
@@ -136,6 +157,7 @@ class FunctionManager:
                                     str_low = str_low + self.form_output(str(ast_ins.location)) + "\n\t"
                                     str_total = str(ast_ins.location)
 
+
             if not any(ast_ins.get_children()):
                 break
             for child in ast_ins.get_children():
@@ -153,6 +175,35 @@ class FunctionManager:
             return "位于 " + str(file_path) + " 文件\t第" + str(line) + "行 第" + str(column) + "列"
         return str_
 
+    def get_fig_sizes_1(self):
+        return [num_high, num_medium, num_low, num_leak, num_unused]
+
+    def get_fig_labels_1(self):
+        return ["HighRiskFunction", "HighRiskFunction", "HighRiskFunction", "LeakFunction", "UnusedFunction"]
+
+    def get_fig_sizes_high(self):
+        global high_sizes
+        return high_sizes
+
+    def get_fig_sizes_medium(self):
+        global medium_sizes
+        return medium_sizes
+
+    def get_fig_sizes_low(self):
+        global low_sizes
+        return low_sizes
+
+    def get_fig_labels_high(self):
+        global high_labels
+        return high_labels
+
+    def get_fig_labels_medium(self):
+        global medium_labels
+        return medium_labels
+
+    def get_fig_labels_low(self):
+        global low_labels
+        return low_labels
 
 leak_dict = {
     "constParameter",
@@ -174,6 +225,7 @@ unused_dict = {
     "unusedFunctionParameter",
     "unusedStructMember"
 }
+
 
 if __name__ == "__main__":
     # file_path = r'C:\Users\86177\Desktop\大作业\登录系统（会员管理）\登录系统.cpp'
