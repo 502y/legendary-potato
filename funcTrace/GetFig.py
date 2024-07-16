@@ -1,8 +1,9 @@
-import matplotlib.pyplot as plt
 import time
-import numpy as np
 
-from RiskFuncManage import *
+import matplotlib.pyplot as plt
+
+from funcTrace.RiskFuncManage import FunctionManager
+
 
 class getFig:
     def __init__(self, labels, sizes, file_path_=None, fig_name=None, file_name_=None, get_path=False):
@@ -63,12 +64,13 @@ class getFig:
 
 
 if __name__ == "__main__":
-    file_path = r"C:\Users\86177\Desktop\test\test.c"
+    file_path = r"C:\Users\13238\Downloads\Compressed\CJAG-master\CJAG-master\cjag.c"
     manager = FunctionManager(file_path)
     results = manager.riskFunction()
     print(results)
 
     labels = manager.get_fig_labels_high()
     sizes = manager.get_fig_sizes_high()
-    path_name = getFig(labels, sizes, r"C:\Users\86177\Desktop\test", "total",None,True).get_fig()
+    path_name = getFig(labels, sizes, r"C:\Users\13238\Downloads\Compressed\CJAG-master\CJAG-master", "total", None,
+                       True).get_fig()
     print(path_name)

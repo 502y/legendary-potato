@@ -15,7 +15,7 @@ class AST_Tree_json:
         if not hasattr(self, '_initialized'):  # 防止重复初始化
             self._initialized = True
             self.absolute_path = absolute_path
-            self.clang_path = r'E:\LLVM\bin\libclang.dll'
+            self.clang_path = r'..\build\LLVM\bin\libclang.dll'
             Config.set_library_file(self.clang_path)
 
             # 设置命令行参数以忽略标准头文件

@@ -14,9 +14,8 @@ from client.model.recent_file_model import recent_file_from_dict, RecentProjectE
 from client.view.custom_treeview import CustomFileSystemModel
 from client.view.main_view import MainWindowView
 from funcTrace.AstTreeJson import AST_Tree_json
-from funcTrace.RiskFuncManage import FunctionManager
 from utils.cmd_utils import compile_and_run
-from utils.file_utils import extract_custom_headers_and_sources
+from utils.file_utils import extract_custom_headers_and_sources, export_report_to_txt, export_report_to_doc
 from utils.str_utils import is_empty_or_whitespace, search_in_str
 
 count = 0
@@ -139,22 +138,26 @@ class MainWindowViewController(QMainWindow, MainWindowView):
             self.show_source_code(item)
 
     def show_source_code(self, path):
-        with open(path, "r") as file_:
-            content = file_.read()
-            self.sourceBrowser.setText(
-                f'<pre><code style="white-space: pre-wrap; font-family: inherit;">{html.escape(content)}</code></pre>')
-        self.var_set = OrderedSet([])
-        var_text = ""
         try:
-            self.generate_ast(path)
-            self.analyze_ast(self.ast_instance, path)
-
+            with open(path, "r") as file_:
+                content = file_.read()
+                self.sourceBrowser.setText(
+                    f'<pre><code style="white-space: pre-wrap; font-family: inherit;">{html.escape(content)}</code></pre>')
         except Exception as e:
-            print(e)
+            self.sourceBrowser.setText(f"无法打开文件{path}")
         finally:
-            for item in self.var_set:
-                var_text = var_text + item
-            self.varBrowser.setText(var_text)
+            self.var_set = OrderedSet([])
+            var_text = ""
+            try:
+                self.generate_ast(path)
+                self.analyze_ast(self.ast_instance, path)
+
+            except Exception as e:
+                print(e)
+            finally:
+                for item in self.var_set:
+                    var_text = var_text + item
+                self.varBrowser.setText(var_text)
 
     def do_search(self):
         content = self.search_line_edit.text()
@@ -186,22 +189,18 @@ class MainWindowViewController(QMainWindow, MainWindowView):
             self.showError("请先选择程序")
             return
         file_name, _ = QFileDialog.getSaveFileName(self, "QFileDialog.getSaveFileName()", "",
-                                                   "文本文档(*.txt);;All Files (*)")
-        report_set = OrderedSet()
-        for path in self.custom_sources:
-            report_set.add(FunctionManager(path).riskFunction())
+                                                   "文本文档(*.txt);;Microsoft Word 文档 (*.docx);;All Files (*)")
+        if not file_name:
+            return
 
-        text = ""
-        for report in report_set:
-            text = text + report + "\n\n\n"
-
-        if file_name:
-            try:
-                with open(file_name, 'w') as f:
-                    f.write(text)
-                self.showSuccessMessage(text="保存成功", title="成功")
-            except Exception as e:
-                self.showError(e)
+        try:
+            if file_name.endswith(".txt"):
+                export_report_to_txt(file_name, self.custom_sources)
+            if file_name.endswith(".docx"):
+                export_report_to_doc(file_name, self.custom_sources)
+            self.showSuccessMessage(text="保存成功", title="成功")
+        except Exception as e:
+            self.showError(e)
 
     def try_exit(self):
         reply = QMessageBox.question(self, '提示', '确定退出吗？', QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
