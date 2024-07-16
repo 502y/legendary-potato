@@ -1,6 +1,3 @@
-from utils.database.database_util import *
-from funcTrace.AstTreeJson import AST_Tree_json
-from CodeCheck import *
 import re
 
 from funcTrace.AstTreeJson import AST_Tree_json
@@ -28,6 +25,7 @@ low_labels = []
 high_sizes = []
 medium_sizes = []
 low_sizes = []
+
 
 class FunctionManager:
     def __init__(self, file_path):
@@ -157,7 +155,6 @@ class FunctionManager:
                                     str_low = str_low + self.form_output(str(ast_ins.location)) + "\n\t"
                                     str_total = str(ast_ins.location)
 
-
             if not any(ast_ins.get_children()):
                 break
             for child in ast_ins.get_children():
@@ -205,6 +202,7 @@ class FunctionManager:
         global low_labels
         return low_labels
 
+
 leak_dict = {
     "constParameter",
     "constVariablePointer",
@@ -225,7 +223,6 @@ unused_dict = {
     "unusedFunctionParameter",
     "unusedStructMember"
 }
-
 
 if __name__ == "__main__":
     # file_path = r'C:\Users\86177\Desktop\大作业\登录系统（会员管理）\登录系统.cpp'
