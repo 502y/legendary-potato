@@ -108,7 +108,7 @@ class FunctionManager:
 
         str_risk = str_risk_h + "\n" + str_risk_m + "\n" + str_risk_l + "\n" + str_leak + "\n" + str_unused + "\n"
         str_risk = "统计结果：\n" + "\t高等风险函数数量\t" + str(num_high) + "\n" + "\t中等风险函数数量\t" + str(num_medium) + "\n" + "\t低风险函数数量\t\t" + str(num_low) + "\n" + "\t内存泄露函数数量\t" + str(num_leak) + "\n" + "\t无效函数数量\t\t" + str(num_unused) + "\n" + str_risk
-        return str_risk
+        return "============\n" + self.file_path + "\n" + str_risk
 
     def generate_ast(self, path):
         ast_obj = AST_Tree_json(path)
