@@ -46,8 +46,11 @@ def export_report_to_txt(file_name: str, custom_sources):
     for path in custom_sources:
         manager = FunctionManager(path)
         report_set.add(manager.riskFunction())
-        print(manager.get_fig_labels_high())
-        print(manager.get_fig_sizes_high())
+
+        if len(manager.get_fig_sizes_1()) != 0:
+            getFig(manager.get_fig_labels_1(), manager.get_fig_sizes_1(), os.path.dirname(file_name),
+                           "Total",
+                           f"{os.path.basename(path)}_total.jpg", True).get_fig()
 
         if len(manager.get_fig_sizes_high()) != 0:
             getFig(manager.get_fig_labels_high(), manager.get_fig_sizes_high(), os.path.dirname(file_name),
@@ -80,7 +83,15 @@ def export_report_to_doc(file_name: str, custom_sources):
 
         doc.add_paragraph(text)
 
+        if len(manager.get_fig_sizes_1()) != 0:
+            total = getFig(manager.get_fig_labels_1(), manager.get_fig_sizes_1(), os.path.dirname(file_name),
+                           "Total",
+                           f"{os.path.basename(path)}_total.jpg", True).get_fig()
+            doc.add_picture(total)
+            os.remove(total)
+
         if len(manager.get_fig_sizes_high()) != 0:
+
             high = getFig(manager.get_fig_labels_high(), manager.get_fig_sizes_high(), os.path.dirname(file_name),
                           "High risk",
                           f"{os.path.basename(path)}_high_risk.jpg", True).get_fig()
