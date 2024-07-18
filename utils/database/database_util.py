@@ -4,7 +4,6 @@ import sqlite3
 from utils.str_utils import is_empty_or_whitespace
 
 
-# file path is "utils/database/database_util.py"
 class SingletonDecorator:
     def __init__(self, klass):
         self.klass = klass

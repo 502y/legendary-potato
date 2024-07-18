@@ -63,11 +63,20 @@ class CppCheck:
                 content = None
             code = results[i + 1]
 
+            # 正则表达式匹配方括号内的内容
+            pattern = r'\[(.*?)\]'
+            match = re.search(pattern, content)
+
+            if match:
+                content_in_brackets = match.group(1)
+            else:
+                content_in_brackets = r'NULL'
+
             # 构建 JSON 对象
             json_object = {
                 "path": path.strip(),
                 "location": location.strip(),
-                "content": content.strip(),
+                "content": content_in_brackets.strip(),
                 "code": code.strip()
             }
 
@@ -78,7 +87,7 @@ class CppCheck:
 
 
 if __name__ == "__main__":
-    file_path = r"C:\Users\13238\Downloads\Compressed\CJAG-master\CJAG-master\cjag.c"
+    file_path = r"C:\Users\86177\Desktop\test\test.c"
     checker = CppCheck(file_path)
     results = checker.checkMemoryLeaks()
 

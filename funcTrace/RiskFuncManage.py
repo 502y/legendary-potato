@@ -1,4 +1,5 @@
 import re
+import json
 
 from funcTrace.AstTreeJson import AST_Tree_json
 from funcTrace.CodeCheck import CppCheck
@@ -107,34 +108,52 @@ class FunctionManager:
         checker = CppCheck(self.file_path).checkMemoryLeaks()
         if checker:
             for line in checker:
-                pattern = r'\'path\': \'(?P<path>.+?)\', \'location\': \'(?P<location_line>\d+),(?P<location_column>\d+)\', \'content\': \'(?P<content>.+?)\', \'code\': \'(?P<code>.+?)\''
-                match = re.match(pattern, str(line))
-                if match:
-                    path = match.group(1)
-                    location_line = match.group(2)
-                    location_column = match.group(3)
-                    content = match.group(4)
-                else:
-                    path = None
-                    location_line = None
-                    location_column = None
-                    content = None
-                pattern_ = r'\[(.*?)\]'
-                leak_unused_content = re.match(pattern_, str(content))
-                if leak_unused_content in leak_dict:
-                    num_leak += 1
-                    str_leak = str_leak + "位于 " + str(path) + " 文件\t第" + str(location_line) + "行 第" + str(
-                        location_column) + "列\n"
-                if leak_unused_content in unused_dict:
-                    num_unused += 1
-                    str_unused = str_unused + "位于 " + str(path) + " 文件\t第" + str(location_line) + "行 第" + str(
-                        location_column) + "列\n"
+                if line is not None:
+                    # pattern = r'"path": "(?P<path>(?:[a-zA-Z]:)?\\\\[^"]*(?:\\\\[^"]*)*)", "location": "(?P<location>\d+,\d+)", "content": "(?P<content>.+?),", "code": "(?P<code>.+?)"'
+                    # match = re.match(pattern, str(line))
+                    # if match:
+                    #     path = match.group(1)
+                    #     location_line = match.group(2)
+                    #     location_column = match.group(3)
+                    #     content = match.group(4)
+                    # else:
+                    #     path = None
+                    #     location_line = None
+                    #     location_column = None
+                    #     content = None
+                    message = str(line).replace("'", '"')
+                    try:
+                        data = json.loads(message)
+                        path = data.get("path")
+                        location = data.get("location")
+                        content = data.get("content")
+                        code = data.get("code")
+                        location_parts = location.split(',')
+                        location_line = str(location_parts[0])
+                        location_column = str(location_parts[1])
+                    except json.JSONDecodeError as e:
+                        path = None
+                        content = None
+                        location_line = None
+                        location_column = None
+
+                    leak_unused_content = content
+                    if leak_unused_content in leak_dict:
+                        num_leak += 1
+                        str_leak = str_leak + "位于 " + str(path) + " 文件\t第" + str(location_line) + "行 第" + str(
+                            location_column) + "列\n"
+                    if leak_unused_content in unused_dict:
+                        num_unused += 1
+                        str_unused = str_unused + "位于 " + str(path) + " 文件\t第" + str(location_line) + "行 第" + str(
+                            location_column) + "列\n"
 
         str_risk = str_risk_h + "\n" + str_risk_m + "\n" + str_risk_l + "\n" + str_leak + "\n" + str_unused + "\n"
         str_risk = "统计结果：\n" + "\t高等风险函数数量\t" + str(num_high) + "\n" + "\t中等风险函数数量\t" + str(
-            num_medium) + "\n" + "\t低风险函数数量\t\t" + str(num_low) + "\n" + "\t内存泄露函数数量\t" + str(
+            num_medium) + "\n" + "\t低风险函数数量\t" + str(num_low) + "\n" + "\t内存泄露函数数量\t" + str(
             num_leak) + "\n" + "\t无效函数数量\t\t" + str(num_unused) + "\n" + str_risk
         return "=" * 70 + "\n" + self.file_path + "\n" + str_risk
+
+
 
     def generate_ast(self, path):
         ast_obj = AST_Tree_json(path)
@@ -268,7 +287,6 @@ class FunctionManager:
 leak_dict = {
     "constParameter",
     "constVariablePointer",
-    "arrayIndexOutOfBounds",
     "leak",
     "nullPointer",
     "possibleNullDereference",
@@ -276,6 +294,10 @@ leak_dict = {
     "uninitStructField",
     "uninitMemberVar",
     "uninitVariable",
+    "uninitvar",
+    "arrayIndexOutOfBounds",
+    "uninitGlobalVar",
+    "uninitLocalVar",
 }
 
 unused_dict = {
