@@ -34,12 +34,6 @@ class FileTreeViewer(QTreeView):
 
         self.tree = QTreeView()
 
-        # # 展开所有路径
-        # common_root = os.path.commonpath(paths)
-        # index = self.model.index(common_root)
-        # self.tree.setRootIndex(index)
-        # self.tree.expandAll()
-
         layout = QVBoxLayout()
         layout.addWidget(self.tree)
         self.setLayout(layout)

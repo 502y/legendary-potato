@@ -76,7 +76,7 @@ class MainWindowViewController(QMainWindow, MainWindowView):
                 self.open_File(selected_file)
 
             else:
-                self.statusbar.showMessage("选择的文件无效")
+                self.statusbar.showMessage(f"选择的文件{selected_file}无效")
                 return
 
     def open_File(self, path):
@@ -92,7 +92,7 @@ class MainWindowViewController(QMainWindow, MainWindowView):
             if len(paths) == 0:
                 paths.append(path)
 
-            if len(self.custom_sources) ==0:
+            if len(self.custom_sources) == 0:
                 self.custom_sources.add(path)
 
             self.common_prefix = os.path.commonpath(paths)
@@ -104,6 +104,7 @@ class MainWindowViewController(QMainWindow, MainWindowView):
             self.treeView.setSortingEnabled(True)
             # self.model.setRootPath(selected_file)
             self.model.setReadOnly(True)
+
             # 展开所有路径
             common_root = os.path.commonpath(paths)
             index = self.model.index(common_root)
@@ -195,7 +196,6 @@ class MainWindowViewController(QMainWindow, MainWindowView):
                                                    "文本文档(*.txt);;Microsoft Word 文档 (*.docx)")
         if not file_name:
             return
-
 
         try:
             if file_name.endswith(".txt"):
