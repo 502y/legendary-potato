@@ -17,7 +17,7 @@ def extract_custom_headers_and_sources(header_file, included_files=None, include
     # 用于匹配非官方库的正则表达式
     custom_header_pattern = re.compile(r'#include\s+"(.+?)"')
 
-    with open(header_file, 'r') as file:
+    with open(header_file, 'r', encoding='utf-8') as file:
         content = file.read()
 
     # 查找所有匹配的非官方库文件
@@ -49,8 +49,8 @@ def export_report_to_txt(file_name: str, custom_sources):
 
         if len(manager.get_fig_sizes_1()) != 0:
             getFig(manager.get_fig_labels_1(), manager.get_fig_sizes_1(), os.path.dirname(file_name),
-                           "Total",
-                           f"{os.path.basename(path)}_total.jpg", True).get_fig()
+                   "Total",
+                   f"{os.path.basename(path)}_total.jpg", True).get_fig()
 
         if len(manager.get_fig_sizes_high()) != 0:
             getFig(manager.get_fig_labels_high(), manager.get_fig_sizes_high(), os.path.dirname(file_name),
@@ -71,7 +71,7 @@ def export_report_to_txt(file_name: str, custom_sources):
     for report in report_set:
         text = text + report + "\n\n\n"
 
-    with open(file_name, 'w') as f:
+    with open(file_name, 'w', encoding='utf-8') as f:
         f.write(text)
 
 
@@ -91,7 +91,6 @@ def export_report_to_doc(file_name: str, custom_sources):
             os.remove(total)
 
         if len(manager.get_fig_sizes_high()) != 0:
-
             high = getFig(manager.get_fig_labels_high(), manager.get_fig_sizes_high(), os.path.dirname(file_name),
                           "High risk",
                           f"{os.path.basename(path)}_high_risk.jpg", True).get_fig()

@@ -48,7 +48,7 @@ class MainWindowViewController(QMainWindow, MainWindowView):
 
     def load_recent_file(self, menu):
         encrypted_file = os.path.join(os.getcwd(), "recent_file.json")
-        with open(encrypted_file, "r") as enc_file:
+        with open(encrypted_file, "r", encoding='utf-8') as enc_file:
             recent_file_json_set = json.loads(enc_file.read())
             self.recent_file_dict = recent_file_from_dict(recent_file_json_set)
             for line in self.recent_file_dict:
@@ -65,7 +65,7 @@ class MainWindowViewController(QMainWindow, MainWindowView):
             selected_file = dialog.selectedFiles()[0]
             # 判断是否包含C入口
             if selected_file:
-                with open(selected_file, "r") as file:
+                with open(selected_file, "r", encoding='utf-8') as file:
                     content = file.read()
 
                 pattern = r"\b(int|void)\b\s+main\s*\(\s*(?:int\s+argc,\s*(?:char\s*\*\s*){1,2}argv\[\])?\s*\)\s*\{.*\}"
@@ -125,7 +125,7 @@ class MainWindowViewController(QMainWindow, MainWindowView):
             new_ins = RecentProjectElement(name=path, path=path)
             self.recent_file_dict.append(new_ins)
 
-            with open(os.path.join(os.getcwd(), "recent_file.json"), "w") as enc_file:
+            with open(os.path.join(os.getcwd(), "recent_file.json"), "w", encoding='utf-8') as enc_file:
                 json.dump(recent_file_to_dict(self.recent_file_dict), enc_file)
             self.load_recent_file(self.recentFile)
 
@@ -143,7 +143,7 @@ class MainWindowViewController(QMainWindow, MainWindowView):
 
     def show_source_code(self, path):
         try:
-            with open(path, "r") as file_:
+            with open(path, "r", encoding='utf-8') as file_:
                 content = file_.read()
                 self.sourceBrowser.setText(
                     f'<pre><code style="white-space: pre-wrap; font-family: inherit;">{html.escape(content)}</code></pre>')
@@ -219,7 +219,7 @@ class MainWindowViewController(QMainWindow, MainWindowView):
         if not self.entry_point:
             self.showError("请先选择项目入口")
             return
-        with open(self.entry_point, "r") as file:
+        with open(self.entry_point, "r", encoding='utf-8') as file:
             try:
                 compile_and_run(file.read())
             except Exception as e:

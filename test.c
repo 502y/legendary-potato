@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 
-//无效函数
+// 无效函数
 int sum(int x, int y){
 	return x+y;
 }
@@ -16,7 +16,8 @@ void printStringLength(char *str) {
 void reverseAndCopy(char *dest, char *src) {
     int len = strlen(src);
     memcpy(dest, src, len + 1); // 包括空字符
-    for(int i = 0; i < len / 2; i++) {
+    int i;
+    for(i=0; i < len / 2; i++) {
         char temp = dest[i];
         dest[i] = dest[len - i - 1];
         dest[len - i - 1] = temp;
@@ -26,12 +27,12 @@ void reverseAndCopy(char *dest, char *src) {
 int main() {
     char input[100];
     char reversed[100];
-    int *array = new int[100];
+    int *array[100] = {0};
     int x = 0;
     int *ptr;
-	*ptr = 10;
-	int array_int[10];
-	array_int[10] = 0;
+    //*ptr = 10;
+    int array_int[10];
+    array_int[8] = 0;
 
     // 使用 gets 输入字符串，注意：gets 在 C99 中已废弃，这里仅用于示例
     printf("Enter a string: ");
@@ -53,6 +54,7 @@ int main() {
     // 输出反转后的字符串
     printf("Reversed string: %s\n", reversed);
 
-    return 0;
-}
+    system("pause");
 
+    return 0;
+} // Make sure this closing brace is present

@@ -70,10 +70,6 @@ class DatabaseEditor(DatabaseEditorView):
             else:
                 self.build_table(self.db.get_all_threat())
 
-    def closeEvent(self, event):
-        self.db.close()
-        event.accept()
-
     def build_table(self, data):
         self.model.clear()
         self.model.setHorizontalHeaderLabels(['风险函数', '威胁等级', '描述'])
