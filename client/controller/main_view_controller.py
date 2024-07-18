@@ -92,6 +92,9 @@ class MainWindowViewController(QMainWindow, MainWindowView):
             if len(paths) == 0:
                 paths.append(path)
 
+            if len(self.custom_sources) ==0:
+                self.custom_sources.add(path)
+
             self.common_prefix = os.path.commonpath(paths)
 
             self.model = CustomFileSystemModel(paths)
@@ -189,9 +192,10 @@ class MainWindowViewController(QMainWindow, MainWindowView):
             self.showError("请先选择程序")
             return
         file_name, _ = QFileDialog.getSaveFileName(self, "QFileDialog.getSaveFileName()", "",
-                                                   "文本文档(*.txt);;Microsoft Word 文档 (*.docx);;All Files (*)")
+                                                   "文本文档(*.txt);;Microsoft Word 文档 (*.docx)")
         if not file_name:
             return
+
 
         try:
             if file_name.endswith(".txt"):
